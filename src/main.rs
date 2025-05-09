@@ -45,7 +45,7 @@ fn main() {
     s1.add("foo".to_owned());
     s1.remove("foo".to_owned());
     println!("set has foo {}", s1.contains("foo"));
- 
+
     let mut s2 = ORSet::new(CLIENT_2);
     s2.merge(s1);
 

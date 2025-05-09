@@ -1,4 +1,4 @@
-use crate::gcounter::{GCounter, ReplicaId, Convergent};
+use crate::gcounter::{Convergent, GCounter, ReplicaId};
 
 #[derive(Debug, Clone)]
 pub struct PNCounter {

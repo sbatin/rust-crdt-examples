@@ -1,5 +1,5 @@
+use crate::gcounter::{Convergent, GCounter, ReplicaId};
 use std::cmp::Ordering;
-use crate::gcounter::{GCounter, ReplicaId, Convergent};
 
 #[derive(Debug, Clone)]
 pub struct VClock(GCounter);
@@ -12,7 +12,7 @@ impl VClock {
     pub fn inc(&mut self, replica: ReplicaId) {
         self.0.inc(replica);
     }
- 
+
     pub fn compare(&self, other: &Self) -> Option<Ordering> {
         self.0
             .keys()

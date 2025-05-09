@@ -1,6 +1,6 @@
-use std::collections::{HashMap, BTreeSet};
+use crate::gcounter::{Convergent, ReplicaId};
 use std::borrow::Borrow;
-use crate::gcounter::{ReplicaId, Convergent};
+use std::collections::{BTreeSet, HashMap};
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Dot(ReplicaId, usize);
@@ -29,7 +29,8 @@ impl DotContext {
     }
 
     pub fn next_dot(&mut self, replica: ReplicaId) -> Dot {
-        let v = self.clock
+        let v = self
+            .clock
             .entry(replica)
             .and_modify(|n| *n += 1)
             .or_insert(1);
@@ -92,10 +93,10 @@ impl<K: Clone> DotKernel<K> {
         self.entries.values().any(|x| x.borrow() == value)
     }
 
-    pub fn keys(&self) -> impl Iterator<Item=&K> {
+    pub fn keys(&self) -> impl Iterator<Item = &K> {
         self.entries.values()
     }
- 
+
     pub fn add(&mut self, replica: ReplicaId, value: K, delta: &mut Self) {
         let dot = self.context.next_dot(replica);
         self.entries.insert(dot.clone(), value.clone());
@@ -177,7 +178,7 @@ impl<K: Eq + Clone> AWORSet<K> {
         self.state.contains(value)
     }
 
-    pub fn keys(&self) -> impl Iterator<Item=&K> {
+    pub fn keys(&self) -> impl Iterator<Item = &K> {
         self.state.keys()
     }
 
@@ -293,6 +294,7 @@ mod tests {
 
         let snapshot = set2.clone();
         set2.merge(set1.clone()); // merge again should not change anything
+
         //assert_eq!(set2, snapshot);
     }
 

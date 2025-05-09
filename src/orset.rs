@@ -1,9 +1,8 @@
+use crate::gcounter::{Convergent, ReplicaId};
+use crate::vclock::VClock;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
-
-use crate::gcounter::{ReplicaId, Convergent};
-use crate::vclock::VClock;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ORSet<K: Eq + Hash> {
@@ -63,7 +62,7 @@ impl<K: Eq + Hash> ORSet<K> {
                 self.rem.remove(&key);
                 v
             }
-            _ => VClock::new()
+            _ => VClock::new(),
         };
         v.inc(self.replica_id);
         self.add.insert(key, v);
@@ -81,7 +80,7 @@ impl<K: Eq + Hash> ORSet<K> {
                 self.add.remove(&key);
                 v
             }
-            _ => VClock::new()
+            _ => VClock::new(),
         };
         v.inc(self.replica_id);
         self.rem.insert(key, v);

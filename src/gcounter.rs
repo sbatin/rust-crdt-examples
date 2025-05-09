@@ -1,4 +1,4 @@
-use std::collections::{HashMap, hash_map::Keys};
+use std::collections::{hash_map::Keys, HashMap};
 
 pub type ReplicaId = u64;
 
@@ -23,16 +23,11 @@ impl GCounter {
     }
 
     pub fn value(&self) -> usize {
-        self.0
-            .iter()
-            .fold(0, |acc, (_k, v)| acc + v)
+        self.0.iter().fold(0, |acc, (_k, v)| acc + v)
     }
 
     pub fn inc(&mut self, replica: ReplicaId) {
-        self.0
-            .entry(replica)
-            .and_modify(|v| *v += 1)
-            .or_insert(1);
+        self.0.entry(replica).and_modify(|v| *v += 1).or_insert(1);
     }
 }
 
