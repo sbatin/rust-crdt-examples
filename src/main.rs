@@ -1,5 +1,6 @@
 mod gcounter;
 mod pncounter;
+mod orset;
 mod vclock;
 
 use pncounter::PNCounter;
