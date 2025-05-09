@@ -1,9 +1,11 @@
+mod awormap;
 mod aworset;
 mod gcounter;
 mod orset;
 mod pncounter;
 mod vclock;
 
+use awormap::AWORMap;
 use aworset::AWORSet;
 use gcounter::{Convergent, ReplicaId};
 use orset::ORSet;
@@ -62,4 +64,11 @@ fn main() {
 
     println!("set contains banana {}", s1.contains("banana"));
     println!("keys = {:?}", s1.keys().collect::<Vec<_>>());
+
+    let mut m1 = AWORMap::new(CLIENT_1);
+    m1.insert("foo".to_owned(), PNCounter::new());
+    m1.get_mut("foo").unwrap().inc(CLIENT_1);
+    println!("m1.foo = {}", m1.get("foo").unwrap().value());
+    m1.remove("foo");
+    println!("m1.foo = {:?}", m1.get("foo"));
 }
