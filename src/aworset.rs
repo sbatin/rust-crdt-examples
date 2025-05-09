@@ -7,7 +7,7 @@ struct Dot(ReplicaId, usize);
 
 type VectorClock = HashMap<ReplicaId, usize>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct DotContext {
     clock: VectorClock,
     dots: BTreeSet<Dot>,
@@ -71,7 +71,7 @@ impl Convergent for DotContext {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct DotKernel<K> {
     context: DotContext,
     entries: HashMap<Dot, K>,
@@ -154,7 +154,7 @@ impl<K> Convergent for DotKernel<K> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct AWORSet<K> {
     replica_id: ReplicaId,
     state: DotKernel<K>,
@@ -295,7 +295,7 @@ mod tests {
         let snapshot = set2.clone();
         set2.merge(set1.clone()); // merge again should not change anything
 
-        //assert_eq!(set2, snapshot);
+        assert_eq!(set2, snapshot);
     }
 
     #[test]
@@ -319,6 +319,6 @@ mod tests {
         let mut abc = a.clone();
         abc.merge(bc.clone());
 
-        //assert_eq!(ab, abc);
+        assert_eq!(ab, abc);
     }
 }
