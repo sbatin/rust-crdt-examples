@@ -1,12 +1,12 @@
 use crate::gcounter::{Convergent, GCounter, ReplicaId};
 use std::cmp::Ordering;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct VClock(GCounter);
 
 impl VClock {
     pub fn new() -> Self {
-        Self(GCounter::new())
+        Default::default()
     }
 
     pub fn inc(&mut self, replica: ReplicaId) {
@@ -29,10 +29,8 @@ impl VClock {
                 }
             })
     }
-}
 
-impl Convergent for VClock {
-    fn merge(&mut self, other: Self) {
+    pub fn merge(&mut self, other: Self) {
         self.0.merge(other.0);
     }
 }

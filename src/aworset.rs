@@ -41,6 +41,17 @@ impl DotContext {
         self.dots.insert(dot);
     }
 
+    pub fn merge(&mut self, other: Self) {
+        for (k, v) in other.clock.into_iter() {
+            self.clock
+                .entry(k)
+                .and_modify(|x| *x = (*x).max(v))
+                .or_insert(v);
+        }
+        self.dots.extend(other.dots);
+        self.compact();
+    }
+
     fn compact(&mut self) {
         let mut dots_to_remove = BTreeSet::new();
 
@@ -58,63 +69,56 @@ impl DotContext {
     }
 }
 
-impl Convergent for DotContext {
-    fn merge(&mut self, other: Self) {
-        for (k, v) in other.clock.into_iter() {
-            self.clock
-                .entry(k)
-                .and_modify(|x| *x = (*x).max(v))
-                .or_insert(v);
-        }
-        self.dots.extend(other.dots);
-        self.compact();
-    }
-}
-
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct DotKernel<K> {
     context: DotContext,
     entries: HashMap<Dot, K>,
 }
 
-impl<K: Clone> DotKernel<K> {
-    pub fn new() -> Self {
+impl<K> Default for DotKernel<K> {
+    fn default() -> Self {
         Self {
             context: DotContext::new(),
             entries: HashMap::new(),
         }
     }
+}
 
-    pub fn contains<Q>(&self, value: &Q) -> bool
+impl<K: Clone> DotKernel<K> {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn contains<Q>(&self, key: &Q) -> bool
     where
         K: Borrow<Q>,
         Q: Eq + ?Sized,
     {
-        self.entries.values().any(|x| x.borrow() == value)
+        self.entries.values().any(|k| k.borrow() == key)
     }
 
     pub fn keys(&self) -> impl Iterator<Item = &K> {
         self.entries.values()
     }
 
-    pub fn add(&mut self, replica: ReplicaId, value: K, delta: &mut Self) {
+    pub fn add(&mut self, replica: ReplicaId, key: K, delta: &mut Self) {
         let dot = self.context.next_dot(replica);
-        self.entries.insert(dot.clone(), value.clone());
+        self.entries.insert(dot.clone(), key.clone());
 
-        delta.entries.insert(dot.clone(), value);
+        delta.entries.insert(dot.clone(), key);
         delta.context.add(dot);
         delta.context.compact();
     }
 
-    pub fn remove<Q>(&mut self, value: &Q, delta: &mut Self)
+    pub fn remove<Q>(&mut self, key: &Q, delta: &mut Self)
     where
         K: Borrow<Q>,
         Q: Eq + ?Sized,
     {
         let mut dots_to_remove = Vec::new();
 
-        for (dot, v2) in &self.entries {
-            if v2.borrow() == value {
+        for (dot, k) in &self.entries {
+            if k.borrow() == key {
                 dots_to_remove.push(dot.clone());
             }
         }
@@ -126,10 +130,8 @@ impl<K: Clone> DotKernel<K> {
 
         delta.context.compact();
     }
-}
 
-impl<K> Convergent for DotKernel<K> {
-    fn merge(&mut self, other: Self) {
+    pub fn merge(&mut self, other: Self) {
         let mut dots_to_remove = Vec::new();
 
         for dot in self.entries.keys() {
@@ -139,10 +141,10 @@ impl<K> Convergent for DotKernel<K> {
             }
         }
 
-        for (dot, v) in other.entries {
+        for (dot, k) in other.entries {
             // add unseen elements
             if !self.entries.contains_key(&dot) && !self.context.contains(&dot) {
-                self.entries.insert(dot, v);
+                self.entries.insert(dot, k);
             }
         }
 
