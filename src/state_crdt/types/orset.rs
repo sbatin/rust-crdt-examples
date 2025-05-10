@@ -1,5 +1,4 @@
-use crate::gcounter::{Convergent, ReplicaId};
-use crate::vclock::VClock;
+use super::{Convergent, ReplicaId, VClock};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;

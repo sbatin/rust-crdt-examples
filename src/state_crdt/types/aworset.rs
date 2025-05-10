@@ -1,4 +1,4 @@
-use crate::gcounter::{Convergent, ReplicaId};
+use super::{Convergent, ReplicaId};
 use std::borrow::Borrow;
 use std::collections::{BTreeSet, HashMap};
 

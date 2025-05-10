@@ -1,5 +1,5 @@
-use crate::aworset::{AWORSet, DotKernel};
-use crate::gcounter::{Convergent, ReplicaId};
+use super::aworset::DotKernel;
+use super::{AWORSet, Convergent, ReplicaId};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -144,8 +144,8 @@ impl<K: Eq + Hash + Clone, V: Convergent + Default> Convergent for AWORMap<K, V>
 
 #[cfg(test)]
 mod tests {
+    use super::super::GCounter;
     use super::*;
-    use crate::gcounter::GCounter;
 
     const REPLICA_1: ReplicaId = 123;
     const REPLICA_2: ReplicaId = 456;

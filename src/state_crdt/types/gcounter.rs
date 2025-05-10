@@ -1,16 +1,6 @@
+use super::{Convergent, ReplicaId};
+use crate::common::extend_with;
 use std::collections::HashMap;
-
-pub type ReplicaId = u64;
-
-pub trait Convergent {
-    type Delta;
-
-    fn merge(&mut self, other: Self);
-
-    fn merge_delta(&mut self, delta: Self::Delta);
-
-    fn take_delta(&mut self) -> Option<Self::Delta>;
-}
 
 #[derive(Debug, Clone, Default)]
 pub struct GCounter(HashMap<ReplicaId, usize>);
@@ -18,14 +8,6 @@ pub struct GCounter(HashMap<ReplicaId, usize>);
 impl GCounter {
     pub fn new() -> Self {
         Default::default()
-    }
-
-    pub fn keys(&self) -> impl Iterator<Item = &ReplicaId> {
-        self.0.keys()
-    }
-
-    pub fn get(&self, replica: &ReplicaId) -> usize {
-        self.0.get(replica).map_or(0, |v| *v)
     }
 
     pub fn value(&self) -> usize {
@@ -41,12 +23,7 @@ impl Convergent for GCounter {
     type Delta = Self;
 
     fn merge(&mut self, other: Self) {
-        for (k, v) in other.0.into_iter() {
-            self.0
-                .entry(k)
-                .and_modify(|x| *x = (*x).max(v))
-                .or_insert(v);
-        }
+        extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
     }
 
     fn merge_delta(&mut self, delta: Self::Delta) {

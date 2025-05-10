@@ -1,15 +1,9 @@
-mod awormap;
-mod aworset;
-mod gcounter;
-mod orset;
-mod pncounter;
+mod common;
+mod state_crdt;
 mod vclock;
 
-use awormap::AWORMap;
-use aworset::AWORSet;
-use gcounter::{Convergent, ReplicaId};
-use orset::ORSet;
-use pncounter::PNCounter;
+use common::ReplicaId;
+use state_crdt::{AWORMap, AWORSet, Convergent, ORSet, PNCounter};
 use vclock::VClock;
 
 const CLIENT_1: ReplicaId = 100;

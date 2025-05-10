@@ -1,8 +1,10 @@
-use crate::gcounter::{Convergent, GCounter, ReplicaId};
+use crate::common::extend_with;
+use crate::common::ReplicaId;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
-pub struct VClock(GCounter);
+pub struct VClock(HashMap<ReplicaId, usize>);
 
 impl VClock {
     pub fn new() -> Self {
@@ -10,7 +12,7 @@ impl VClock {
     }
 
     pub fn inc(&mut self, replica: ReplicaId) {
-        self.0.inc(replica);
+        self.0.entry(replica).and_modify(|v| *v += 1).or_insert(1);
     }
 
     pub fn compare(&self, other: &Self) -> Option<Ordering> {
@@ -31,7 +33,7 @@ impl VClock {
     }
 
     pub fn merge(&mut self, other: Self) {
-        self.0.merge(other.0);
+        extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
     }
 }
 
