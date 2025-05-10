@@ -60,7 +60,7 @@ fn main() {
     let mut s2 = AWORSet::new(CLIENT_2);
     s2.merge(s1.clone());
     s2.add("banana".to_owned());
-    s1.merge_delta(s2.split_delta());
+    s1.merge_delta(s2.take_delta().unwrap());
 
     println!("set contains banana {}", s1.contains("banana"));
     println!("keys = {:?}", s1.keys().collect::<Vec<_>>());

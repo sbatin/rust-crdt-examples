@@ -160,7 +160,7 @@ impl<K: Clone> DotKernel<K> {
 pub struct AWORSet<K> {
     replica_id: ReplicaId,
     state: DotKernel<K>,
-    delta: DotKernel<K>,
+    delta: Option<DotKernel<K>>,
 }
 
 impl<K: Eq + Clone> AWORSet<K> {
@@ -168,7 +168,7 @@ impl<K: Eq + Clone> AWORSet<K> {
         Self {
             replica_id,
             state: DotKernel::new(),
-            delta: DotKernel::new(),
+            delta: None,
         }
     }
 
@@ -185,8 +185,9 @@ impl<K: Eq + Clone> AWORSet<K> {
     }
 
     pub fn add(&mut self, value: K) {
-        self.state.remove(&value, &mut self.delta);
-        self.state.add(self.replica_id, value, &mut self.delta);
+        let delta = self.delta.get_or_insert_default();
+        self.state.remove(&value, delta);
+        self.state.add(self.replica_id, value, delta);
     }
 
     pub fn remove<Q>(&mut self, value: &Q)
@@ -194,23 +195,31 @@ impl<K: Eq + Clone> AWORSet<K> {
         K: Borrow<Q>,
         Q: Eq + ?Sized,
     {
-        self.state.remove(value, &mut self.delta);
-    }
-
-    pub fn merge_delta(&mut self, delta: DotKernel<K>) {
-        self.delta.merge(delta);
-        self.state.merge(self.delta.clone());
-    }
-
-    pub fn split_delta(&mut self) -> DotKernel<K> {
-        std::mem::replace(&mut self.delta, DotKernel::new())
+        let delta = self.delta.get_or_insert_default();
+        self.state.remove(value, delta);
     }
 }
 
-impl<K> Convergent for AWORSet<K> {
+impl<K: Clone> Convergent for AWORSet<K> {
+    type Delta = DotKernel<K>;
+
     fn merge(&mut self, other: Self) {
-        self.delta.merge(other.delta);
+        if let Some(delta) = other.delta {
+            let d = self.delta.get_or_insert(DotKernel::new());
+            d.merge(delta);
+        }
+
         self.state.merge(other.state);
+    }
+
+    fn merge_delta(&mut self, delta: Self::Delta) {
+        let self_delta = self.delta.get_or_insert_default();
+        self_delta.merge(delta);
+        self.state.merge(self_delta.clone());
+    }
+
+    fn take_delta(&mut self) -> Option<Self::Delta> {
+        self.delta.take()
     }
 }
 

@@ -3,7 +3,13 @@ use std::collections::HashMap;
 pub type ReplicaId = u64;
 
 pub trait Convergent {
+    type Delta;
+
     fn merge(&mut self, other: Self);
+
+    fn merge_delta(&mut self, delta: Self::Delta);
+
+    fn take_delta(&mut self) -> Option<Self::Delta>;
 }
 
 #[derive(Debug, Clone, Default)]
@@ -32,6 +38,8 @@ impl GCounter {
 }
 
 impl Convergent for GCounter {
+    type Delta = Self;
+
     fn merge(&mut self, other: Self) {
         for (k, v) in other.0.into_iter() {
             self.0
@@ -39,6 +47,14 @@ impl Convergent for GCounter {
                 .and_modify(|x| *x = (*x).max(v))
                 .or_insert(v);
         }
+    }
+
+    fn merge_delta(&mut self, delta: Self::Delta) {
+        self.merge(delta);
+    }
+
+    fn take_delta(&mut self) -> Option<Self::Delta> {
+        Some(self.clone())
     }
 }
 

@@ -25,8 +25,18 @@ impl PNCounter {
 }
 
 impl Convergent for PNCounter {
+    type Delta = Self;
+
     fn merge(&mut self, other: Self) {
         self.pos.merge(other.pos);
         self.neg.merge(other.neg);
+    }
+
+    fn merge_delta(&mut self, delta: Self::Delta) {
+        self.merge(delta);
+    }
+
+    fn take_delta(&mut self) -> Option<Self::Delta> {
+        Some(self.clone())
     }
 }

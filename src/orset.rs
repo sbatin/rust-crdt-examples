@@ -87,7 +87,9 @@ impl<K: Eq + Hash> ORSet<K> {
     }
 }
 
-impl<K: Eq + Hash> Convergent for ORSet<K> {
+impl<K: Eq + Hash + Clone> Convergent for ORSet<K> {
+    type Delta = Self;
+
     fn merge(&mut self, other: Self) {
         merge_keys(&mut self.add, other.add);
         merge_keys(&mut self.rem, other.rem);
@@ -105,6 +107,14 @@ impl<K: Eq + Hash> Convergent for ORSet<K> {
                 _ => self.rem.remove(k),
             };
         }
+    }
+
+    fn merge_delta(&mut self, delta: Self::Delta) {
+        self.merge(delta);
+    }
+
+    fn take_delta(&mut self) -> Option<Self::Delta> {
+        Some(self.clone())
     }
 }
 
