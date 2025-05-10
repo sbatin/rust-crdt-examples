@@ -3,7 +3,7 @@ use crate::common::ReplicaId;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Default, Hash)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct VClock(BTreeMap<ReplicaId, usize>);
 
 impl VClock {
@@ -11,8 +11,10 @@ impl VClock {
         Default::default()
     }
 
-    pub fn inc(&mut self, replica: ReplicaId) {
-        self.0.entry(replica).and_modify(|v| *v += 1).or_insert(1);
+    pub fn inc(&mut self, replica: ReplicaId) -> usize {
+        let v = self.0.entry(replica).or_default();
+        *v += 1;
+        *v
     }
 
     pub fn compare(&self, other: &Self) -> Option<Ordering> {
@@ -37,14 +39,6 @@ impl VClock {
     }
 }
 
-impl PartialEq for VClock {
-    fn eq(&self, other: &Self) -> bool {
-        self.compare(other) == Some(Ordering::Equal)
-    }
-}
-
-impl Eq for VClock {}
-
 impl PartialOrd for VClock {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.compare(other)
@@ -63,10 +57,18 @@ mod tests {
         let mut clock1 = VClock::new();
         let mut clock2 = VClock::new();
 
-        clock1.inc(REPLICA_1);
-        clock2.inc(REPLICA_1);
+        assert_eq!(clock1.partial_cmp(&clock2), Some(Ordering::Equal));
+        assert_eq!(clock1, clock2);
+
+        assert_eq!(clock1.inc(REPLICA_1), 1);
+
+        assert_eq!(clock1.partial_cmp(&clock2), Some(Ordering::Greater));
+        assert_ne!(clock1, clock2);
+
+        assert_eq!(clock2.inc(REPLICA_1), 1);
 
         assert_eq!(clock1.partial_cmp(&clock2), Some(Ordering::Equal));
+        assert_eq!(clock1, clock2);
     }
 
     #[test]
@@ -74,14 +76,15 @@ mod tests {
         let mut clock1 = VClock::new();
         let mut clock2 = VClock::new();
 
-        clock1.inc(REPLICA_1);
-        clock1.inc(REPLICA_1);
-        clock1.inc(REPLICA_2);
+        assert_eq!(clock1.inc(REPLICA_1), 1);
+        assert_eq!(clock1.inc(REPLICA_1), 2);
+        assert_eq!(clock1.inc(REPLICA_2), 1);
 
         clock2.inc(REPLICA_1);
         clock2.inc(REPLICA_2);
 
         assert_eq!(clock1.partial_cmp(&clock2), Some(Ordering::Greater));
+        assert_ne!(clock1, clock2);
     }
 
     #[test]
@@ -97,6 +100,7 @@ mod tests {
         clock2.inc(REPLICA_2);
 
         assert_eq!(clock1.partial_cmp(&clock2), Some(Ordering::Less));
+        assert_ne!(clock1, clock2);
     }
 
     #[test]
@@ -108,5 +112,6 @@ mod tests {
         clock2.inc(REPLICA_2);
 
         assert_eq!(clock1.partial_cmp(&clock2), None);
+        assert_ne!(clock1, clock2);
     }
 }
