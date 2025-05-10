@@ -1,10 +1,10 @@
-use crate::common::extend_with;
+use crate::common::ExtendWith;
 use crate::common::ReplicaId;
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Default)]
-pub struct VClock(HashMap<ReplicaId, usize>);
+#[derive(Debug, Clone, Default, Hash)]
+pub struct VClock(BTreeMap<ReplicaId, usize>);
 
 impl VClock {
     pub fn new() -> Self {
@@ -33,7 +33,7 @@ impl VClock {
     }
 
     pub fn merge(&mut self, other: Self) {
-        extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
+        ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
     }
 }
 
