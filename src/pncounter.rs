@@ -1,6 +1,6 @@
 use crate::gcounter::{Convergent, GCounter, ReplicaId};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PNCounter {
     pos: GCounter,
     neg: GCounter,
@@ -8,10 +8,7 @@ pub struct PNCounter {
 
 impl PNCounter {
     pub fn new() -> Self {
-        Self {
-            pos: GCounter::new(),
-            neg: GCounter::new(),
-        }
+        Default::default()
     }
 
     pub fn inc(&mut self, replica: ReplicaId) {

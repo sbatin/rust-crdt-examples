@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Keys, HashMap};
+use std::collections::HashMap;
 
 pub type ReplicaId = u64;
 
@@ -6,15 +6,15 @@ pub trait Convergent {
     fn merge(&mut self, other: Self);
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct GCounter(HashMap<ReplicaId, usize>);
 
 impl GCounter {
     pub fn new() -> Self {
-        Self(HashMap::new())
+        Default::default()
     }
 
-    pub fn keys(&self) -> Keys<'_, ReplicaId, usize> {
+    pub fn keys(&self) -> impl Iterator<Item = &ReplicaId> {
         self.0.keys()
     }
 
@@ -23,7 +23,7 @@ impl GCounter {
     }
 
     pub fn value(&self) -> usize {
-        self.0.iter().fold(0, |acc, (_k, v)| acc + v)
+        self.0.values().sum()
     }
 
     pub fn inc(&mut self, replica: ReplicaId) {
