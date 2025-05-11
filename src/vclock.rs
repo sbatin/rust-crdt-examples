@@ -17,7 +17,13 @@ impl VClock {
         *v
     }
 
-    pub fn compare(&self, other: &Self) -> Option<Ordering> {
+    pub fn merge(&mut self, other: Self) {
+        ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
+    }
+}
+
+impl PartialOrd for VClock {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.0
             .keys()
             .chain(other.0.keys())
@@ -32,16 +38,6 @@ impl VClock {
                     _ => Some(prev),
                 }
             })
-    }
-
-    pub fn merge(&mut self, other: Self) {
-        ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
-    }
-}
-
-impl PartialOrd for VClock {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.compare(other)
     }
 }
 
