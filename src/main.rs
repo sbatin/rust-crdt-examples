@@ -3,7 +3,7 @@ mod state_crdt;
 mod vclock;
 
 use common::ReplicaId;
-use state_crdt::{AWORMap, AWORSet, Convergent, ORSet, PNCounter};
+use state_crdt::{AWORMap, AWORSet, Convergent, PNCounter};
 use vclock::VClock;
 
 const CLIENT_1: ReplicaId = 100;
@@ -36,14 +36,6 @@ fn main() {
     c1.merge(c2);
 
     println!("value = {:?}", c1);
-
-    let mut s1 = ORSet::new(CLIENT_1);
-    s1.add("foo".to_owned());
-    s1.remove("foo".to_owned());
-    println!("set has foo {}", s1.contains("foo"));
-
-    let mut s2 = ORSet::new(CLIENT_2);
-    s2.merge(s1);
 
     let mut s1 = AWORSet::new(CLIENT_1);
     s1.add("foo".to_owned());
