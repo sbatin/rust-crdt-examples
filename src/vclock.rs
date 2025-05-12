@@ -20,6 +20,13 @@ impl VClock {
     pub fn merge(&mut self, other: Self) {
         ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
     }
+
+    /// Checks if vector clock is greater or concurrent
+    /// with the other vector clock
+    pub fn gtc(&self, other: &Self) -> bool {
+        self.partial_cmp(other)
+            .is_none_or(|x| x == Ordering::Greater)
+    }
 }
 
 impl PartialOrd for VClock {
