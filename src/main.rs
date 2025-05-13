@@ -1,10 +1,8 @@
-mod common;
 mod state_crdt;
 mod vclock;
 
-use common::ReplicaId;
 use state_crdt::{AWORMap, AWORSet, Convergent, PNCounter};
-use vclock::VClock;
+use vclock::ReplicaId;
 
 const CLIENT_1: ReplicaId = 100;
 const CLIENT_2: ReplicaId = 200;
@@ -23,19 +21,6 @@ fn main() {
     c1.merge(c2);
 
     println!("value = {}", c1.value());
-
-    let mut c1 = VClock::new();
-    let mut c2 = VClock::new();
-
-    c1.inc(CLIENT_1);
-    c1.inc(CLIENT_2);
-    c1.inc(CLIENT_2);
-
-    c2.inc(CLIENT_2);
-
-    c1.merge(c2);
-
-    println!("value = {:?}", c1);
 
     let mut s1 = AWORSet::new(CLIENT_1);
     s1.add("foo".to_owned());

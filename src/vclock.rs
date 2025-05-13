@@ -1,7 +1,7 @@
-use crate::common::ExtendWith;
-use crate::common::ReplicaId;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
+
+pub type ReplicaId = u64;
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct VClock(BTreeMap<ReplicaId, usize>);
@@ -11,14 +11,24 @@ impl VClock {
         Default::default()
     }
 
+    #[allow(dead_code)]
+    pub fn get(&self, replica: &ReplicaId) -> usize {
+        self.0.get(replica).map_or(0, |v| *v)
+    }
+
     pub fn inc(&mut self, replica: ReplicaId) -> usize {
         let v = self.0.entry(replica).or_default();
         *v += 1;
         *v
     }
 
-    pub fn merge(&mut self, other: Self) {
-        ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
+    pub fn merge(&mut self, other: &Self) {
+        for (replica, v2) in &other.0 {
+            self.0
+                .entry(*replica)
+                .and_modify(|v1| *v1 = (*v1).max(*v2))
+                .or_insert(*v2);
+        }
     }
 
     /// Checks if vector clock is greater or concurrent
@@ -54,6 +64,39 @@ mod tests {
 
     const REPLICA_1: ReplicaId = 123;
     const REPLICA_2: ReplicaId = 456;
+
+    #[test]
+    fn merge_1() {
+        let mut clock1 = VClock::new();
+        let mut clock2 = VClock::new();
+
+        // clock1 does one increment, clock2 does two increments
+        clock1.inc(REPLICA_1);
+        clock2.inc(REPLICA_2);
+        clock2.inc(REPLICA_2);
+
+        // Now, merge clock2 into clock1
+        clock1.merge(&clock2);
+
+        // clock1 should now have the value 1 from node1 and 2 from node2
+        assert_eq!(clock1.get(&REPLICA_1), 1);
+        assert_eq!(clock1.get(&REPLICA_2), 2);
+    }
+
+    #[test]
+    fn merge_2() {
+        let mut clock1 = VClock::new();
+        let mut clock2 = VClock::new();
+
+        // both clocks increment the same replica
+        clock1.inc(REPLICA_1);
+        clock2.inc(REPLICA_1);
+
+        // Merge clock2 into clock1
+        clock1.merge(&clock2);
+
+        assert_eq!(clock1.get(&REPLICA_1), 1);
+    }
 
     #[test]
     fn compare_1() {

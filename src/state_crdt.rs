@@ -1,6 +1,6 @@
 mod types;
 
-pub use crate::common::ReplicaId;
+pub use crate::vclock::ReplicaId;
 pub use types::*;
 
 pub trait Convergent {

@@ -1,5 +1,4 @@
 use super::{Convergent, ReplicaId};
-use crate::common::ExtendWith;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
@@ -23,7 +22,12 @@ impl Convergent for GCounter {
     type Delta = Self;
 
     fn merge(&mut self, other: Self) {
-        ExtendWith::extend_with(&mut self.0, other.0, |a, b| *a = (*a).max(b));
+        for (k, v2) in other.0.into_iter() {
+            self.0
+                .entry(k)
+                .and_modify(|v1| *v1 = (*v1).max(v2))
+                .or_insert(v2);
+        }
     }
 
     fn merge_delta(&mut self, delta: Self::Delta) {
